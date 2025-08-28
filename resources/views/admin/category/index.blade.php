@@ -1,98 +1,71 @@
 @extends('admin.app')
 @section('content')
     <main class="page-content">
-        <!--breadcrumb-->
-        <div class="page-breadcrumb  d-sm-flex align-items-center mb-3">
-            <div class="breadcrumb-title pe-3">Drivers</div>
+        <div class="page-breadcrumb d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">Categories</div>
             <div class="ps-3">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 p-0">
-                        <li class="breadcrumb-item"><a href="{{route('admin.dashboard')}}"><i class="bx bx-home-alt"></i></a>
-                        </li>
-                        <li class="breadcrumb-item active" aria-current="page">Drivers Table</li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"><i class="bx bx-home-alt"></i></a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Categories Table</li>
                     </ol>
                 </nav>
             </div>
             <div class="ms-auto">
-                <a class="btn btn-primary " href="{{route('category.create')}}">
+                <a class="btn btn-primary" href="{{ route('category.create') }}">
                     <i class="bi bi-plus-lg"></i> Add Category
                 </a>
             </div>
-
         </div>
-        <!--end breadcrumb-->
-        {{-- <h6 class="mb-0 text-uppercase">DataTable Example</h6> --}}
         <hr />
         <div class="card">
             <div class="card-body">
-                <div class="table-responsive ">
+             
+                <div class="table-responsive">
                     <table id="example" class="table table-striped table-bordered" style="width:100%">
                         <thead>
                             <tr>
-                                <th >Record #</th>
-                                  <th >Driver Id #</th>
-                                <th>Employee No</th>
-                                <th>First Name</th>
-                                <th>Phone</th>
-                                <th>Email</th>
-                                <th>Job Title</th>
+                                <th>Category Name</th>
+                                <th>Slug</th>
+                                <th>Parent</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                           
-                                <tr>
-                                    <td class="text-center">2</td>
-                                     <td class="text-center">5</td>
-                                    <td>hy</td>
-                                    <td>admin</td>
-                                    <td>+4413656565566</td>
-                                    <td>dumy@gmail.com</td>
-                                    <td>employee</td>
-                                   <td class="text-center">
-    @if(auth()->user()->role === 'admin') {{-- optional role check --}}
-    <div class="dropdown">
-        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="actionMenu" data-bs-toggle="dropdown" aria-expanded="false">
-            ⋮
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="actionMenu">
-            <li>
-                <a class="dropdown-item" href="">
-                    <i class="bi bi-eye"></i> View
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item" href="">
-                    <i class="bi bi-pencil"></i> Edit
-                </a>
-            </li>
-           
-            <li>
-                <form action="{" method="POST" onsubmit="return confirm('Are you sure you want to delete this driver?')">
-                    @csrf
-                    @method('DELETE')
-                    <button class="dropdown-item text-danger" type="submit">
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </div>
-    @endif
-</td>
+                            @php
+                                function displayCategories($categories, $level = 0) {
+                                    $indentation = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
+                                    foreach ($categories as $category) {
+                                        echo '<tr>';
+                                        echo '<td>' . $indentation . htmlspecialchars($category->name) . '</td>';
+                                        echo '<td>' . htmlspecialchars($category->slug) . '</td>';
+                                        echo '<td>' . ($category->parent ? htmlspecialchars($category->parent->name) : 'Top Level') . '</td>';
+                                        echo '<td class="text-center">';
+                                        echo '<div class="d-flex justify-content-center">';
+                                        echo '<a href="' . route('category.edit', $category->id) . '" class="btn btn-sm btn-info me-2">Edit</a>';
+                                        echo '<form action="' . route('category.destroy', $category->id) . '" method="POST" onsubmit="return confirm(\'Are you sure you want to delete this category?\')">';
+                                        echo csrf_field();
+                                        echo method_field('DELETE');
+                                        echo '<button type="submit" class="btn btn-sm btn-danger">Delete</button>';
+                                        echo '</form>';
+                                        echo '</div>';
+                                        echo '</td>';
+                                        echo '</tr>';
 
-                                </tr>
-                          
+                                        if ($category->children->count()) {
+                                            displayCategories($category->children, $level + 1);
+                                        }
+                                    }
+                                }
+                            @endphp
+                            
+                            @php
+                                displayCategories($categories);
+                            @endphp
                         </tbody>
-                     
                     </table>
                 </div>
             </div>
-        </div>
-
-        </table>
-        </div>
-        </div>
         </div>
     </main>
 @endsection

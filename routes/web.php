@@ -69,11 +69,16 @@ Route::middleware(['auth', 'checkRole:admin'])->group(function () {
     // Vehicle List Index
     Route::get('/vehicle/list', [VehicleController::class, 'index'])->name('vehicle.index');
       Route::get('/vehicle/create', [VehicleController::class, 'create'])->name('vehicle.create');
+
+
+
       // Category route list 
       Route::get('/category', [CategoryController::class, 'index'])->name('category.index');
       Route::get('/category/create', [CategoryController::class, 'create'])->name('category.create');
-      Route::get('/category/edit', [CategoryController::class, 'edit'])->name('category.edit');
-      Route::get('/category/destroy', [CategoryController::class, 'destroy'])->name('category.destroy');
+            Route::POST('/category/store', [CategoryController::class, 'store'])->name('category.store');
+     Route::get('/category/{category}/edit', [CategoryController::class, 'edit'])->name('category.edit');
+     Route::put('/category/{category}', [CategoryController::class, 'update'])->name('category.update');
+     Route::delete('/category/{category}', [CategoryController::class, 'destroy'])->name('category.destroy');
    
 });
 
