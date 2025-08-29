@@ -178,11 +178,22 @@ public function update(Request $request, $id)
 }
 
 
+public function destroy($id)
+{
+    $product = Product::findOrFail($id);
 
-   public function destroy()
-   {
-    
-   }
+    // Delete image file if exists
+    if ($product->image && file_exists(public_path('uploads/products/' . $product->image))) {
+        unlink(public_path('uploads/products/' . $product->image));
+    }
+
+   
+
+    // Delete product
+    $product->delete();
+
+    return redirect()->route('product.index')->with('success', 'Product and its zones deleted successfully.');
+}
 
 
 
