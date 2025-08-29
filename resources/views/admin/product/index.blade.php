@@ -74,7 +74,7 @@
                                             </li>
                                             <li>
                                                 <a class="dropdown-item" href="{{ route('product.edituser', $product->id) }}">
-                                                    <i class="bi bi-pencil"></i> User Edit
+                                                    <i class="bi bi-pencil"></i> Persolize
                                                 </a>
                                             </li>
                                             <li>

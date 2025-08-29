@@ -129,40 +129,52 @@ public function update(Request $request, $id)
 {
     $product = Product::findOrFail($id);
 
+    // Validate inputs
     $request->validate([
         'name' => 'required|string|max:255',
-        'category_id' => 'required|exists:categories,id',
-        'subcategory_id' => 'nullable|exists:categories,id',
-        'type' => 'required|in:text_only,image_only,text_image,fixed',
         'price' => 'required|numeric|min:0',
-        'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
-        'text_zones' => 'nullable|string',
-        'image_zones' => 'nullable|string',
+        'category_id' => 'required|integer|exists:categories,id',
+        'subcategory_id' => 'nullable|integer|exists:categories,id',
+        'type' => 'required|string|in:text_only,image_only,text_image,fixed',
+        'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'background_image' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+        'text_zones' => 'nullable|string',  // JSON
+        'image_zones' => 'nullable|string', // JSON
     ]);
 
+    // Update basic fields
     $product->name = $request->name;
+    $product->price = $request->price;
     $product->category_id = $request->category_id;
     $product->subcategory_id = $request->subcategory_id;
     $product->type = $request->type;
-    $product->price = $request->price;
-    $product->status = $request->status ?? 1;
 
+    // Handle Thumbnail
     if ($request->hasFile('thumbnail')) {
-        $product->thumbnail = $request->file('thumbnail')->store('products/thumbnails', 'public');
+        // Delete old if exists
+        if ($product->thumbnail && \Storage::exists('public/'.$product->thumbnail)) {
+            \Storage::delete('public/'.$product->thumbnail);
+        }
+        $thumbnailPath = $request->file('thumbnail')->store('thumbnails', 'public');
+        $product->thumbnail = $thumbnailPath;
     }
 
+    // Handle Background Image
     if ($request->hasFile('background_image')) {
-        $product->background_image = $request->file('background_image')->store('products/backgrounds', 'public');
+        if ($product->background_image && \Storage::exists('public/'.$product->background_image)) {
+            \Storage::delete('public/'.$product->background_image);
+        }
+        $bgPath = $request->file('background_image')->store('backgrounds', 'public');
+        $product->background_image = $bgPath;
     }
 
-    // Save zones as JSON
-    $product->text_zones = $request->text_zones ?: '[]';
-    $product->image_zones = $request->image_zones ?: '[]';
+    // Handle Zones
+    $product->text_zones = $request->filled('text_zones') ? $request->text_zones : '[]';
+    $product->image_zones = $request->filled('image_zones') ? $request->image_zones : '[]';
 
     $product->save();
 
-    return redirect()->route('product.index')->with('success', 'Product updated successfully.');
+    return redirect()->route('product.index')->with('success', 'Product updated successfully!');
 }
 
 

@@ -4,12 +4,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Open+Sans&family=Lobster&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-    #editorWrap { display:flex; gap:20px; align-items:flex-start; }
+    #textToolbar select, #textToolbar input, #textToolbar button { margin: 0 6px 6px 0; vertical-align: middle; }
+    #editorWrap { display:flex; gap:20px; align-items:flex-start; flex-wrap: wrap; }
     #canvasPanel { background:#f8f9fa; padding:10px; border-radius:6px; }
-    #controls { width:320px; }
+    #controls { width:340px; }
     .control-section { margin-bottom:12px; padding:10px; border:1px solid #eee; border-radius:6px; background:#fff; }
-    #textToolbar select, #textToolbar input, #textToolbar button { margin: 0 6px 6px 0; }
     .small-btn { padding:4px 8px; font-size:13px; }
+    .canvas-container { border:1px solid #ddd; display:block; }
 </style>
 
 <main class="page-content">
@@ -24,15 +25,19 @@
 
     <div class="row">
         <div class="col-md-8">
-            {{-- Product Info --}}
+            {{-- Product Name --}}
             <div class="mb-3">
                 <label>Product Name</label>
                 <input type="text" name="name" class="form-control" value="{{ old('name', $product->name) }}" required>
             </div>
+
+            {{-- Price --}}
             <div class="mb-3">
                 <label>Price</label>
                 <input type="number" name="price" class="form-control" value="{{ old('price', $product->price) }}" min="0" step="0.01" required>
             </div>
+
+            {{-- Main Category --}}
             <div class="mb-3">
                 <label>Main Category</label>
                 <select name="category_id" id="parentCategory" class="form-control" required>
@@ -44,6 +49,8 @@
                     @endforeach
                 </select>
             </div>
+
+            {{-- Sub Category --}}
             <div class="mb-3">
                 <label>Sub Category</label>
                 <select name="subcategory_id" id="subCategory" class="form-control">
@@ -55,6 +62,8 @@
                     @endforeach
                 </select>
             </div>
+
+            {{-- Template Type --}}
             <div class="mb-3">
                 <label>Template Type</label>
                 <select name="type" class="form-control" required>
@@ -64,6 +73,8 @@
                     <option value="fixed" {{ $product->type == 'fixed' ? 'selected' : '' }}>Fixed (No Change)</option>
                 </select>
             </div>
+
+            {{-- Thumbnail --}}
             <div class="mb-3">
                 <label>Thumbnail</label>
                 <input type="file" name="thumbnail" class="form-control">
@@ -71,6 +82,8 @@
                     <img src="{{ asset('storage/'.$product->thumbnail) }}" alt="Thumbnail" class="img-thumbnail mt-2" style="max-width:100px;">
                 @endif
             </div>
+
+            {{-- Background Image --}}
             <div class="mb-3">
                 <label>Upload Background Image</label>
                 <input type="file" id="background-image-input" name="background_image" accept="image/*" class="form-control">
@@ -83,33 +96,39 @@
         {{-- Sidebar Controls --}}
         <div class="col-md-4" id="controls">
             <div class="control-section">
-                <h6>Canvas Tools</h6>
-                <button type="button" id="addTextZone" class="btn btn-primary btn-sm">+ Text Zone</button>
-                <button type="button" id="addImageZone" class="btn btn-warning btn-sm">+ Image Zone</button>
+                <h6>Canvas Size</h6>
+                <input type="number" id="canvasWidth" value="600" class="form-control mb-2" placeholder="Width">
+                <input type="number" id="canvasHeight" value="800" class="form-control mb-2" placeholder="Height">
+                <button type="button" class="btn btn-primary w-100" id="resizeCanvas">Resize Canvas</button>
             </div>
-            <div class="control-section" id="textToolbar" style="display:none;">
-                <h6>Text Controls</h6>
-                <select id="fontFamilySelect">
+
+            <div class="control-section" id="textToolbar">
+                <h6>Text Tools</h6>
+                <button type="button" class="btn btn-sm btn-secondary small-btn" id="addTextZone">Add Text</button>
+                <select id="fontFamily" class="form-control mt-2">
                     <option value="Roboto">Roboto</option>
                     <option value="Open Sans">Open Sans</option>
                     <option value="Lobster">Lobster</option>
                     <option value="Montserrat">Montserrat</option>
-                    <option value="Arial">Arial</option>
                 </select>
-                <input type="number" id="fontSizeInput" placeholder="Size" style="width:60px;">
-                <input type="color" id="fontColorInput">
-                <input type="color" id="bgColorInput">
-                <button type="button" id="boldBtn" class="btn btn-secondary small-btn">B</button>
-                <button type="button" id="italicBtn" class="btn btn-secondary small-btn">I</button>
-                <button type="button" data-align="left" class="alignBtn btn btn-light small-btn">L</button>
-                <button type="button" data-align="center" class="alignBtn btn btn-light small-btn">C</button>
-                <button type="button" data-align="right" class="alignBtn btn btn-light small-btn">R</button>
-                <input type="range" id="rotationRange" min="0" max="360" step="1">
+                <input type="number" id="fontSize" value="20" class="form-control mt-2" placeholder="Font Size">
+                <input type="color" id="fontColor" class="form-control mt-2">
+                <button type="button" id="boldBtn" class="btn btn-outline-dark btn-sm mt-2">Bold</button>
+                <button type="button" id="italicBtn" class="btn btn-outline-dark btn-sm mt-2">Italic</button>
+                <select id="textAlign" class="form-control mt-2">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                </select>
             </div>
+
             <div class="control-section">
-                <button type="button" id="bringForwardBtn" class="btn btn-info small-btn">Bring Forward</button>
-                <button type="button" id="sendBackwardBtn" class="btn btn-info small-btn">Send Backward</button>
-                <button type="button" id="deleteBtn" class="btn btn-danger small-btn">Delete Selected</button>
+                <h6>Image Zones</h6>
+                <button type="button" class="btn btn-sm btn-info" id="addImageZone">Add Image Zone</button>
+            </div>
+
+            <div class="control-section">
+                <button type="button" id="deleteObject" class="btn btn-danger w-100">Delete Selected</button>
             </div>
         </div>
     </div>
@@ -117,14 +136,13 @@
     {{-- Canvas --}}
     <div id="editorWrap" class="mt-3">
         <div id="canvasPanel">
-            <canvas id="templateCanvas" width="600" height="800" style="border:1px solid #ddd;"></canvas>
+            <canvas id="templateCanvas" width="600" height="800"></canvas>
         </div>
     </div>
 
     {{-- Hidden fields --}}
     <input type="hidden" name="text_zones" id="textZonesInput" value="{{ old('text_zones', $product->text_zones) }}">
     <input type="hidden" name="image_zones" id="imageZonesInput" value="{{ old('image_zones', $product->image_zones) }}">
-    <input type="hidden" name="background_image_uploaded" id="backgroundImageUploaded">
 
     <div class="mt-4">
         <button type="submit" class="btn btn-success">Update Product</button>
@@ -139,12 +157,9 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
 <script>
-// FULL Fabric.js Logic (Load existing zones + Toolbar functionality)
 document.addEventListener('DOMContentLoaded', function () {
     const canvas = new fabric.Canvas('templateCanvas', { preserveObjectStacking:true });
     canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
-
-    let selectedObject = null;
 
     // Load background image
     const bgImageUrl = "{{ $product->background_image ? asset('storage/'.$product->background_image) : '' }}";
@@ -162,119 +177,156 @@ document.addEventListener('DOMContentLoaded', function () {
 
     textZonesData.forEach(zone => {
         const tb = new fabric.Textbox(zone.text || 'Edit text', {
-            left: zone.x,
-            top: zone.y,
-            width: zone.width,
-            fontSize: zone.font_size,
-            fontFamily: zone.font_family,
-            fill: zone.color,
+            left: zone.x, top: zone.y, width: zone.width, fontSize: zone.font_size,
+            fontFamily: zone.font_family, fill: zone.color,
             fontWeight: zone.bold ? 'bold' : 'normal',
             fontStyle: zone.italic ? 'italic' : 'normal',
-            textAlign: zone.alignment || 'left',
-            backgroundColor: zone.background_color || 'transparent',
-            angle: zone.rotation || 0
+            textAlign: zone.alignment || 'left', angle: zone.rotation || 0
         });
         canvas.add(tb);
     });
 
     imageZonesData.forEach(zone => {
         const rect = new fabric.Rect({
-            left: zone.x,
-            top: zone.y,
-            width: zone.width,
-            height: zone.height,
-            fill: 'rgba(0,0,0,0.04)',
-            stroke: '#b22222',
-            strokeWidth: 2
+            left: zone.x, top: zone.y, width: zone.width, height: zone.height,
+            fill: 'rgba(0,0,0,0.04)', stroke: '#b22222', strokeWidth: 2
         });
         canvas.add(rect);
     });
 
-    // Add new text zone
-    document.getElementById('addTextZone').addEventListener('click', () => {
-        const tb = new fabric.Textbox('Sample Text', { left:50, top:50, width:200, fontSize:24, fill:'#000' });
-        canvas.add(tb).setActiveObject(tb);
-    });
+    // Toolbar Elements
+    const fontFamilyInput = document.getElementById('fontFamily');
+    const fontSizeInput = document.getElementById('fontSize');
+    const fontColorInput = document.getElementById('fontColor');
+    const textAlignInput = document.getElementById('textAlign');
+    const boldBtn = document.getElementById('boldBtn');
+    const italicBtn = document.getElementById('italicBtn');
 
-    // Add new image zone
-    document.getElementById('addImageZone').addEventListener('click', () => {
-        const rect = new fabric.Rect({ left:100, top:100, width:150, height:100, fill:'rgba(0,0,0,0.04)', stroke:'#b22222', strokeWidth:2 });
-        canvas.add(rect).setActiveObject(rect);
-    });
-
-    // Object selection
+    // Update toolbar when object selected
     canvas.on('selection:created', updateToolbar);
     canvas.on('selection:updated', updateToolbar);
-    canvas.on('selection:cleared', () => {
-        selectedObject = null;
-        document.getElementById('textToolbar').style.display = 'none';
-    });
 
-    function updateToolbar(e) {
-        selectedObject = e.selected[0];
-        if (selectedObject && selectedObject.type === 'textbox') {
-            document.getElementById('textToolbar').style.display = 'block';
-            document.getElementById('fontFamilySelect').value = selectedObject.fontFamily || 'Roboto';
-            document.getElementById('fontSizeInput').value = selectedObject.fontSize || 24;
-            document.getElementById('fontColorInput').value = selectedObject.fill || '#000000';
-            document.getElementById('bgColorInput').value = selectedObject.backgroundColor || '#ffffff';
-            document.getElementById('rotationRange').value = selectedObject.angle || 0;
-        } else {
-            document.getElementById('textToolbar').style.display = 'none';
+    function updateToolbar() {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.type === 'textbox') {
+            fontFamilyInput.value = obj.fontFamily || 'Roboto';
+            fontSizeInput.value = obj.fontSize || 20;
+            fontColorInput.value = obj.fill || '#000000';
+            textAlignInput.value = obj.textAlign || 'left';
+            boldBtn.classList.toggle('active', obj.fontWeight === 'bold');
+            italicBtn.classList.toggle('active', obj.fontStyle === 'italic');
         }
     }
 
-    // Toolbar actions
-    document.getElementById('fontFamilySelect').addEventListener('change', e => { if(selectedObject){ selectedObject.fontFamily=e.target.value; canvas.renderAll(); }});
-    document.getElementById('fontSizeInput').addEventListener('input', e => { if(selectedObject){ selectedObject.fontSize=parseInt(e.target.value); canvas.renderAll(); }});
-    document.getElementById('fontColorInput').addEventListener('input', e => { if(selectedObject){ selectedObject.fill=e.target.value; canvas.renderAll(); }});
-    document.getElementById('bgColorInput').addEventListener('input', e => { if(selectedObject){ selectedObject.backgroundColor=e.target.value; canvas.renderAll(); }});
-    document.getElementById('boldBtn').addEventListener('click', ()=>{ if(selectedObject){ selectedObject.fontWeight=(selectedObject.fontWeight==='bold'?'normal':'bold'); canvas.renderAll(); }});
-    document.getElementById('italicBtn').addEventListener('click', ()=>{ if(selectedObject){ selectedObject.fontStyle=(selectedObject.fontStyle==='italic'?'normal':'italic'); canvas.renderAll(); }});
-    document.querySelectorAll('.alignBtn').forEach(btn => {
-        btn.addEventListener('click', ()=>{ if(selectedObject){ selectedObject.textAlign=btn.getAttribute('data-align'); canvas.renderAll(); }});
+    // Apply font family
+    fontFamilyInput.addEventListener('change', function () {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.type === 'textbox') {
+            obj.fontFamily = this.value;
+            canvas.renderAll();
+        }
     });
-    document.getElementById('rotationRange').addEventListener('input', e=>{ if(selectedObject){ selectedObject.angle=parseInt(e.target.value); canvas.renderAll(); }});
 
-    // Layer & Delete
-    document.getElementById('bringForwardBtn').addEventListener('click', ()=>{ if(selectedObject){ canvas.bringForward(selectedObject); }});
-    document.getElementById('sendBackwardBtn').addEventListener('click', ()=>{ if(selectedObject){ canvas.sendBackwards(selectedObject); }});
-    document.getElementById('deleteBtn').addEventListener('click', ()=>{ if(selectedObject){ canvas.remove(selectedObject); }});
+    // Apply font size
+    fontSizeInput.addEventListener('input', function () {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.type === 'textbox') {
+            obj.fontSize = parseInt(this.value);
+            canvas.renderAll();
+        }
+    });
 
-    // On submit - save zones
-    document.getElementById('productForm').addEventListener('submit', function() {
+    // Apply color
+    fontColorInput.addEventListener('input', function () {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.type === 'textbox') {
+            obj.set('fill', this.value);
+            canvas.renderAll();
+        }
+    });
+
+    // Apply alignment
+    textAlignInput.addEventListener('change', function () {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.type === 'textbox') {
+            obj.textAlign = this.value;
+            canvas.renderAll();
+        }
+    });
+
+    // Toggle bold
+    boldBtn.addEventListener('click', function () {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.type === 'textbox') {
+            obj.fontWeight = obj.fontWeight === 'bold' ? 'normal' : 'bold';
+            canvas.renderAll();
+        }
+    });
+
+    // Toggle italic
+    italicBtn.addEventListener('click', function () {
+        const obj = canvas.getActiveObject();
+        if (obj && obj.type === 'textbox') {
+            obj.fontStyle = obj.fontStyle === 'italic' ? 'normal' : 'italic';
+            canvas.renderAll();
+        }
+    });
+
+    // Resize canvas
+    document.getElementById('resizeCanvas').addEventListener('click', function () {
+        const newWidth = parseInt(document.getElementById('canvasWidth').value);
+        const newHeight = parseInt(document.getElementById('canvasHeight').value);
+        canvas.setWidth(newWidth);
+        canvas.setHeight(newHeight);
+        canvas.renderAll();
+    });
+
+    // Add text zone
+    document.getElementById('addTextZone').addEventListener('click', function () {
+        const tb = new fabric.Textbox('New Text', {
+            left: 50, top: 50, width: 200, fontSize: 20, fontFamily: 'Roboto', fill: '#000'
+        });
+        canvas.add(tb).setActiveObject(tb);
+        updateToolbar();
+    });
+
+    // Add image zone
+    document.getElementById('addImageZone').addEventListener('click', function () {
+        const rect = new fabric.Rect({
+            left: 100, top: 100, width: 150, height: 150,
+            fill: 'rgba(0,0,0,0.04)', stroke: '#b22222', strokeWidth: 2
+        });
+        canvas.add(rect).setActiveObject(rect);
+    });
+
+    // Delete object
+    document.getElementById('deleteObject').addEventListener('click', function () {
+        const active = canvas.getActiveObject();
+        if (active) canvas.remove(active);
+    });
+
+    // Save zones before submit
+    document.getElementById('productForm').addEventListener('submit', function () {
         const textZones = [];
         const imageZones = [];
         canvas.getObjects().forEach(obj => {
-            if(obj.type === 'textbox'){
+            if (obj.type === 'textbox') {
                 textZones.push({
-                    text: obj.text,
-                    x: obj.left, y: obj.top, width: obj.width,
-                    font_size: obj.fontSize, font_family: obj.fontFamily,
-                    color: obj.fill, bold: obj.fontWeight==='bold',
-                    italic: obj.fontStyle==='italic', alignment: obj.textAlign,
-                    background_color: obj.backgroundColor || '', rotation: obj.angle
+                    x: obj.left, y: obj.top, width: obj.width, height: obj.height,
+                    font_size: obj.fontSize, font_family: obj.fontFamily, color: obj.fill,
+                    bold: obj.fontWeight === 'bold', italic: obj.fontStyle === 'italic',
+                    alignment: obj.textAlign, rotation: obj.angle, text: obj.text
                 });
-            } else if(obj.type === 'rect'){
-                imageZones.push({ x: obj.left, y: obj.top, width: obj.width, height: obj.height });
+            } else if (obj.type === 'rect') {
+                imageZones.push({
+                    x: obj.left, y: obj.top, width: obj.width, height: obj.height
+                });
             }
         });
         document.getElementById('textZonesInput').value = JSON.stringify(textZones);
         document.getElementById('imageZonesInput').value = JSON.stringify(imageZones);
     });
-
-    // Google Fonts Loader
-    function loadGoogleFont(font) {
-        const linkId = 'font-' + font.replace(/\s+/g, '-');
-        if (!document.getElementById(linkId)) {
-            const link = document.createElement('link');
-            link.id = linkId;
-            link.rel = 'stylesheet';
-            link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/\s+/g, '+')}&display=swap`;
-            document.head.appendChild(link);
-        }
-    }
-    ['Roboto','Open Sans','Lobster','Montserrat','Arial'].forEach(f => loadGoogleFont(f));
 });
 </script>
+
 @endsection
