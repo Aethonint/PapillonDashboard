@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Admin\VehicleController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\ProductController;
 
 
 /*
@@ -79,6 +80,15 @@ Route::middleware(['auth', 'checkRole:admin'])->group(function () {
      Route::get('/category/{category}/edit', [CategoryController::class, 'edit'])->name('category.edit');
      Route::put('/category/{category}', [CategoryController::class, 'update'])->name('category.update');
      Route::delete('/category/{category}', [CategoryController::class, 'destroy'])->name('category.destroy');
+
+     //All products routes
+     Route::get('/product', [ProductController::class, 'index'])->name('product.index');
+      Route::get('/product/create', [ProductController::class, 'create'])->name('product.create');
+            Route::POST('/product/store', [ProductController::class, 'store'])->name('product.store');
+     Route::get('/product/{category}/edit', [ProductController::class, 'edit'])->name('product.edit');
+     Route::put('/product/{category}', [ProductController::class, 'update'])->name('product.update');
+     Route::delete('/product/{category}', [ProductController::class, 'destroy'])->name('product.destroy');
+
    
 });
 

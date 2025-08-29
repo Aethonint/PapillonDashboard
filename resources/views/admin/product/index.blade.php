@@ -14,8 +14,8 @@
                 </nav>
             </div>
             <div class="ms-auto">
-                <a class="btn btn-primary " href="{{route('vehicle.create')}}">
-                    <i class="bi bi-plus-lg"></i> Add Driver
+                <a class="btn btn-primary " href="{{route('product.create')}}">
+                    <i class="bi bi-plus-lg"></i> Add Templates
                 </a>
             </div>
 

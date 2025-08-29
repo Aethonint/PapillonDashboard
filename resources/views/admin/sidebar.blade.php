@@ -52,13 +52,12 @@
               <a href="javascript:;" class="has-arrow">
                 <div class="parent-icon"><i class="bi bi-car-front"></i>
                 </div>
-                <div class="menu-title">Vehicles</div>
+                <div class="menu-title">Products</div>
               </a>
               <ul>
-                <li> <a href="ecommerce-products-list.html"><i class="bi bi-arrow-right-short"></i>Products List</a>
+                <li> <a href="{{route('product.index')}}"><i class="bi bi-arrow-right-short"></i>Products List</a>
                 </li>
-                <li> <a href="ecommerce-products-grid.html"><i class="bi bi-arrow-right-short"></i>Products Grid</a>
-                </li>
+               
               
               </ul>
             </li>
