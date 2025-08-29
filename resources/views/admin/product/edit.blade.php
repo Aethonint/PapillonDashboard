@@ -1,174 +1,280 @@
 @extends('admin.app')
 
 @section('content')
+<link href="https://fonts.googleapis.com/css2?family=Roboto&family=Open+Sans&family=Lobster&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+    #editorWrap { display:flex; gap:20px; align-items:flex-start; }
+    #canvasPanel { background:#f8f9fa; padding:10px; border-radius:6px; }
+    #controls { width:320px; }
+    .control-section { margin-bottom:12px; padding:10px; border:1px solid #eee; border-radius:6px; background:#fff; }
+    #textToolbar select, #textToolbar input, #textToolbar button { margin: 0 6px 6px 0; }
+    .small-btn { padding:4px 8px; font-size:13px; }
+</style>
+
 <main class="page-content">
-    <div class="justify-content-center">
-        <div class="col-12">
-            <div class="card shadow rounded-card">
-                <div class="card-body bg-white p-4 rounded-card">
-                    <h2 class="card-title mb-3">Edit Driver</h2>
+    <div class="col-12">
+        <div class="card shadow rounded-card">
+            <div class="card-body bg-white p-4 rounded-card">
+                <h2 class="card-title mb-3">Edit Product Template</h2>
 
-                    {{-- Success Message --}}
-                    @if(session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
+<form id="productForm" method="POST" action="{{ route('product.update', $product->id) }}" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
 
-                    {{-- Validation Errors --}}
-                    {{-- They will show automatically from @error blocks --}}
+    <div class="row">
+        <div class="col-md-8">
+            {{-- Product Info --}}
+            <div class="mb-3">
+                <label>Product Name</label>
+                <input type="text" name="name" class="form-control" value="{{ old('name', $product->name) }}" required>
+            </div>
+            <div class="mb-3">
+                <label>Price</label>
+                <input type="number" name="price" class="form-control" value="{{ old('price', $product->price) }}" min="0" step="0.01" required>
+            </div>
+            <div class="mb-3">
+                <label>Main Category</label>
+                <select name="category_id" id="parentCategory" class="form-control" required>
+                    <option value="">-- Select Main Category --</option>
+                    @foreach($categories->where('parent_id', null) as $parent)
+                        <option value="{{ $parent->id }}" {{ $product->category_id == $parent->id ? 'selected' : '' }}>
+                            {{ $parent->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Sub Category</label>
+                <select name="subcategory_id" id="subCategory" class="form-control">
+                    <option value="">-- Select Sub Category --</option>
+                    @foreach($categories->where('parent_id', $product->category_id) as $child)
+                        <option value="{{ $child->id }}" {{ $product->subcategory_id == $child->id ? 'selected' : '' }}>
+                            {{ $child->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Template Type</label>
+                <select name="type" class="form-control" required>
+                    <option value="text_only" {{ $product->type == 'text_only' ? 'selected' : '' }}>Text Only</option>
+                    <option value="image_only" {{ $product->type == 'image_only' ? 'selected' : '' }}>Image Only</option>
+                    <option value="text_image" {{ $product->type == 'text_image' ? 'selected' : '' }}>Text + Image</option>
+                    <option value="fixed" {{ $product->type == 'fixed' ? 'selected' : '' }}>Fixed (No Change)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Thumbnail</label>
+                <input type="file" name="thumbnail" class="form-control">
+                @if($product->thumbnail)
+                    <img src="{{ asset('storage/'.$product->thumbnail) }}" alt="Thumbnail" class="img-thumbnail mt-2" style="max-width:100px;">
+                @endif
+            </div>
+            <div class="mb-3">
+                <label>Upload Background Image</label>
+                <input type="file" id="background-image-input" name="background_image" accept="image/*" class="form-control">
+                @if($product->background_image)
+                    <img src="{{ asset('storage/'.$product->background_image) }}" alt="Background" class="img-thumbnail mt-2" style="max-width:100px;">
+                @endif
+            </div>
+        </div>
 
-                    {{-- Driver Edit Form --}}
-                    <form method="POST" action="{{ route('driver.update', $driver->id) }}">
-                        @csrf
-                        @method('PUT')
+        {{-- Sidebar Controls --}}
+        <div class="col-md-4" id="controls">
+            <div class="control-section">
+                <h6>Canvas Tools</h6>
+                <button type="button" id="addTextZone" class="btn btn-primary btn-sm">+ Text Zone</button>
+                <button type="button" id="addImageZone" class="btn btn-warning btn-sm">+ Image Zone</button>
+            </div>
+            <div class="control-section" id="textToolbar" style="display:none;">
+                <h6>Text Controls</h6>
+                <select id="fontFamilySelect">
+                    <option value="Roboto">Roboto</option>
+                    <option value="Open Sans">Open Sans</option>
+                    <option value="Lobster">Lobster</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Arial">Arial</option>
+                </select>
+                <input type="number" id="fontSizeInput" placeholder="Size" style="width:60px;">
+                <input type="color" id="fontColorInput">
+                <input type="color" id="bgColorInput">
+                <button type="button" id="boldBtn" class="btn btn-secondary small-btn">B</button>
+                <button type="button" id="italicBtn" class="btn btn-secondary small-btn">I</button>
+                <button type="button" data-align="left" class="alignBtn btn btn-light small-btn">L</button>
+                <button type="button" data-align="center" class="alignBtn btn btn-light small-btn">C</button>
+                <button type="button" data-align="right" class="alignBtn btn btn-light small-btn">R</button>
+                <input type="range" id="rotationRange" min="0" max="360" step="1">
+            </div>
+            <div class="control-section">
+                <button type="button" id="bringForwardBtn" class="btn btn-info small-btn">Bring Forward</button>
+                <button type="button" id="sendBackwardBtn" class="btn btn-info small-btn">Send Backward</button>
+                <button type="button" id="deleteBtn" class="btn btn-danger small-btn">Delete Selected</button>
+            </div>
+        </div>
+    </div>
 
-                        <div class="row">
-                            <div class="mb-3 col-md-6">
-                                <label>First Name</label>
-                                <input type="text" name="first_name" class="form-control" 
-                                    value="{{ old('first_name', $driver->first_name) }}">
-                                @error('first_name')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
+    {{-- Canvas --}}
+    <div id="editorWrap" class="mt-3">
+        <div id="canvasPanel">
+            <canvas id="templateCanvas" width="600" height="800" style="border:1px solid #ddd;"></canvas>
+        </div>
+    </div>
 
-                            <div class="mb-3 col-md-6">
-                                <label>Last Name (Optional)</label>
-                                <input type="text" name="last_name" class="form-control" 
-                                    value="{{ old('last_name', $driver->last_name) }}">
-                                @error('last_name')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
+    {{-- Hidden fields --}}
+    <input type="hidden" name="text_zones" id="textZonesInput" value="{{ old('text_zones', $product->text_zones) }}">
+    <input type="hidden" name="image_zones" id="imageZonesInput" value="{{ old('image_zones', $product->image_zones) }}">
+    <input type="hidden" name="background_image_uploaded" id="backgroundImageUploaded">
 
-                            <div class="mb-3 col-md-6">
-                                <label>Email</label>
-                                <input type="email" name="email" class="form-control" 
-                                    value="{{ old('email', $driver->email) }}">
-                                @error('email')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
+    <div class="mt-4">
+        <button type="submit" class="btn btn-success">Update Product</button>
+        <a href="{{ route('product.index') }}" class="btn btn-outline-danger">Cancel</a>
+    </div>
+</form>
 
-                          
-                           <div class="mb-3 col-md-6">
-    <label for="phone" >Phone</label>
-    <input type="text" name="phone" id="phone" class="form-control"
-        value="{{ old('phone', $driver->phone ?? '') }}"  placeholder="+44 ____ ___ ___">
-    @error('phone')
-        <div class="text-danger">{{ $message }}</div>
-    @enderror
-</div>
-<h5>Classifications</h5>
-<div class="mb-3">
-    <label>
-        <input type="radio" name="classification" value="operator"
-            {{ old('classification', $driver->classification ?? '') == 'operator' ? 'checked' : '' }}> Operator
-    </label>
-    <label class="ms-3">
-        <input type="radio" name="classification" value="employee"
-            {{ old('classification', $driver->classification ?? '') == 'employee' ? 'checked' : '' }}> Employee
-    </label>
-    <label class="ms-3">
-        <input type="radio" name="classification" value="technician"
-            {{ old('classification', $driver->classification ?? '') == 'technician' ? 'checked' : '' }}> Technician
-    </label>
-    @error('classification')
-        <div><small class="text-danger">{{ $message }}</small></div>
-    @enderror
-</div>
-
-
-                        <h5>Personal Details</h5>
-                        <div class="row">
-                            <div class="mb-3 col-md-6">
-                                <label>Job Title</label>
-                                <input type="text" name="job_title" class="form-control" 
-                                    value="{{ old('job_title', $driver->driver->job_title) }}">
-                                @error('job_title')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3 col-md-6">
-                                <label>Date of Birth</label>
-                                <input type="date" name="dob" class="form-control" 
-                                    value="{{ old('dob', $driver->driver->dob) }}">
-                                @error('dob')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3 col-md-6">
-                                <label>Start Date</label>
-                                <input type="date" name="start_date" class="form-control" 
-                                    value="{{ old('start_date', $driver->driver->start_date) }}">
-                                @error('start_date')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3 col-md-6">
-                                <label>End Date</label>
-                                <input type="date" name="end_date" class="form-control" 
-                                    value="{{ old('end_date', $driver->driver->end_date) }}">
-                                @error('end_date')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3 col-md-6">
-                                <label>License Number (Optional)</label>
-                                <input type="text" name="license_number" class="form-control" 
-                                    value="{{ old('license_number', $driver->driver->license_number) }}">
-                                @error('license_number')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3 col-md-6">
-                                <label>Employee No</label>
-                                <input type="text" name="employee_no" class="form-control" 
-                                    value="{{ old('employee_no', $driver->driver->employee_no) }}">
-                                @error('employee_no')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3 col-md-6">
-                                <label>Hourly Rate</label>
-                                <input type="number" step="0.01" name="hourly_rate" class="form-control" 
-                                    value="{{ old('hourly_rate', $driver->driver->hourly_rate) }}">
-                                @error('hourly_rate')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-                            
-                           <div class="mb-3 col-md-6">
-    <label>Password</label>
-    <input type="text" name="password" id="password" class="form-control" placeholder="Enter new password to change">
-    @error('password')
-        <small class="text-danger">{{ $message }}</small>
-    @enderror
-</div>
-
-
-                            <div class="mb-3">
-                                <label>Address</label>
-                                <textarea name="address" class="form-control">{{ old('address', $driver->driver->address) }}</textarea>
-                                @error('address')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-start align-items-center gap-5">
-                            <button type="submit" class="btn btn-primary mt-3">Update</button>
-                            <a href="" class="btn btn-outline-danger mt-3">Cancel</a>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
 </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+<script>
+// FULL Fabric.js Logic (Load existing zones + Toolbar functionality)
+document.addEventListener('DOMContentLoaded', function () {
+    const canvas = new fabric.Canvas('templateCanvas', { preserveObjectStacking:true });
+    canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
+
+    let selectedObject = null;
+
+    // Load background image
+    const bgImageUrl = "{{ $product->background_image ? asset('storage/'.$product->background_image) : '' }}";
+    if (bgImageUrl) {
+        fabric.Image.fromURL(bgImageUrl, function (img) {
+            const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            img.set({ originX:'left', originY:'top', left:0, top:0, scaleX:scale, scaleY:scale, selectable:false, evented:false });
+            canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+        }, { crossOrigin:'anonymous' });
+    }
+
+    // Load zones from DB
+    const textZonesData = {!! $product->text_zones ? $product->text_zones : '[]' !!};
+    const imageZonesData = {!! $product->image_zones ? $product->image_zones : '[]' !!};
+
+    textZonesData.forEach(zone => {
+        const tb = new fabric.Textbox(zone.text || 'Edit text', {
+            left: zone.x,
+            top: zone.y,
+            width: zone.width,
+            fontSize: zone.font_size,
+            fontFamily: zone.font_family,
+            fill: zone.color,
+            fontWeight: zone.bold ? 'bold' : 'normal',
+            fontStyle: zone.italic ? 'italic' : 'normal',
+            textAlign: zone.alignment || 'left',
+            backgroundColor: zone.background_color || 'transparent',
+            angle: zone.rotation || 0
+        });
+        canvas.add(tb);
+    });
+
+    imageZonesData.forEach(zone => {
+        const rect = new fabric.Rect({
+            left: zone.x,
+            top: zone.y,
+            width: zone.width,
+            height: zone.height,
+            fill: 'rgba(0,0,0,0.04)',
+            stroke: '#b22222',
+            strokeWidth: 2
+        });
+        canvas.add(rect);
+    });
+
+    // Add new text zone
+    document.getElementById('addTextZone').addEventListener('click', () => {
+        const tb = new fabric.Textbox('Sample Text', { left:50, top:50, width:200, fontSize:24, fill:'#000' });
+        canvas.add(tb).setActiveObject(tb);
+    });
+
+    // Add new image zone
+    document.getElementById('addImageZone').addEventListener('click', () => {
+        const rect = new fabric.Rect({ left:100, top:100, width:150, height:100, fill:'rgba(0,0,0,0.04)', stroke:'#b22222', strokeWidth:2 });
+        canvas.add(rect).setActiveObject(rect);
+    });
+
+    // Object selection
+    canvas.on('selection:created', updateToolbar);
+    canvas.on('selection:updated', updateToolbar);
+    canvas.on('selection:cleared', () => {
+        selectedObject = null;
+        document.getElementById('textToolbar').style.display = 'none';
+    });
+
+    function updateToolbar(e) {
+        selectedObject = e.selected[0];
+        if (selectedObject && selectedObject.type === 'textbox') {
+            document.getElementById('textToolbar').style.display = 'block';
+            document.getElementById('fontFamilySelect').value = selectedObject.fontFamily || 'Roboto';
+            document.getElementById('fontSizeInput').value = selectedObject.fontSize || 24;
+            document.getElementById('fontColorInput').value = selectedObject.fill || '#000000';
+            document.getElementById('bgColorInput').value = selectedObject.backgroundColor || '#ffffff';
+            document.getElementById('rotationRange').value = selectedObject.angle || 0;
+        } else {
+            document.getElementById('textToolbar').style.display = 'none';
+        }
+    }
+
+    // Toolbar actions
+    document.getElementById('fontFamilySelect').addEventListener('change', e => { if(selectedObject){ selectedObject.fontFamily=e.target.value; canvas.renderAll(); }});
+    document.getElementById('fontSizeInput').addEventListener('input', e => { if(selectedObject){ selectedObject.fontSize=parseInt(e.target.value); canvas.renderAll(); }});
+    document.getElementById('fontColorInput').addEventListener('input', e => { if(selectedObject){ selectedObject.fill=e.target.value; canvas.renderAll(); }});
+    document.getElementById('bgColorInput').addEventListener('input', e => { if(selectedObject){ selectedObject.backgroundColor=e.target.value; canvas.renderAll(); }});
+    document.getElementById('boldBtn').addEventListener('click', ()=>{ if(selectedObject){ selectedObject.fontWeight=(selectedObject.fontWeight==='bold'?'normal':'bold'); canvas.renderAll(); }});
+    document.getElementById('italicBtn').addEventListener('click', ()=>{ if(selectedObject){ selectedObject.fontStyle=(selectedObject.fontStyle==='italic'?'normal':'italic'); canvas.renderAll(); }});
+    document.querySelectorAll('.alignBtn').forEach(btn => {
+        btn.addEventListener('click', ()=>{ if(selectedObject){ selectedObject.textAlign=btn.getAttribute('data-align'); canvas.renderAll(); }});
+    });
+    document.getElementById('rotationRange').addEventListener('input', e=>{ if(selectedObject){ selectedObject.angle=parseInt(e.target.value); canvas.renderAll(); }});
+
+    // Layer & Delete
+    document.getElementById('bringForwardBtn').addEventListener('click', ()=>{ if(selectedObject){ canvas.bringForward(selectedObject); }});
+    document.getElementById('sendBackwardBtn').addEventListener('click', ()=>{ if(selectedObject){ canvas.sendBackwards(selectedObject); }});
+    document.getElementById('deleteBtn').addEventListener('click', ()=>{ if(selectedObject){ canvas.remove(selectedObject); }});
+
+    // On submit - save zones
+    document.getElementById('productForm').addEventListener('submit', function() {
+        const textZones = [];
+        const imageZones = [];
+        canvas.getObjects().forEach(obj => {
+            if(obj.type === 'textbox'){
+                textZones.push({
+                    text: obj.text,
+                    x: obj.left, y: obj.top, width: obj.width,
+                    font_size: obj.fontSize, font_family: obj.fontFamily,
+                    color: obj.fill, bold: obj.fontWeight==='bold',
+                    italic: obj.fontStyle==='italic', alignment: obj.textAlign,
+                    background_color: obj.backgroundColor || '', rotation: obj.angle
+                });
+            } else if(obj.type === 'rect'){
+                imageZones.push({ x: obj.left, y: obj.top, width: obj.width, height: obj.height });
+            }
+        });
+        document.getElementById('textZonesInput').value = JSON.stringify(textZones);
+        document.getElementById('imageZonesInput').value = JSON.stringify(imageZones);
+    });
+
+    // Google Fonts Loader
+    function loadGoogleFont(font) {
+        const linkId = 'font-' + font.replace(/\s+/g, '-');
+        if (!document.getElementById(linkId)) {
+            const link = document.createElement('link');
+            link.id = linkId;
+            link.rel = 'stylesheet';
+            link.href = `https://fonts.googleapis.com/css2?family=${font.replace(/\s+/g, '+')}&display=swap`;
+            document.head.appendChild(link);
+        }
+    }
+    ['Roboto','Open Sans','Lobster','Montserrat','Arial'].forEach(f => loadGoogleFont(f));
+});
+</script>
 @endsection

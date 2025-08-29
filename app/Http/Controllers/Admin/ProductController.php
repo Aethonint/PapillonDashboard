@@ -10,7 +10,8 @@ class ProductController extends Controller
 {
    public function index()
    {
-    return view('admin.product.index');
+    $products = Product::with(['category', 'subcategory'])->latest()->get();
+    return view('admin.product.index',compact('products'));
 
    }
    public function create()
@@ -18,10 +19,12 @@ class ProductController extends Controller
      $categories = Categorie::with('parent', 'children')->get()->whereNull('parent_id');
     return view('admin.product.create',compact('categories'));
    }
-   public function show()
-   {
-    
-   }
+   public function show($id)
+{
+    $product = Product::with(['category', 'subcategory'])->findOrFail($id);
+    return view('admin.product.show', compact('product'));
+}
+
 public function store(Request $request)
 {
     // Validate
@@ -76,12 +79,109 @@ public function store(Request $request)
 }
 
 
-   public function edit()
-   {
-    
-   }
+ public function edit($id)
+{
+    $product = Product::findOrFail($id);
+
+    // Fetch all categories (both parent and child)
+    $categories = Categorie::all();
+
+    return view('admin.product.edit', compact('product', 'categories'));
+}
+
+// public function update(Request $request, $id)
+// {
+//     $product = Product::findOrFail($id);
+
+//     $request->validate([
+//         'name' => 'required|string|max:255',
+//         'category_id' => 'required|exists:categories,id',
+//         'subcategory_id' => 'nullable|exists:categories,id',
+//         'type' => 'required|in:text_only,image_only,text_image,fixed',
+//         'price' => 'required|numeric|min:0',
+//         'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+//         'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+//     ]);
+
+//     $product->name = $request->name;
+//     $product->category_id = $request->category_id;
+//     $product->subcategory_id = $request->subcategory_id;
+//     $product->type = $request->type;
+//     $product->price = $request->price;
+//     $product->status = $request->status ?? 1;
+
+//     if ($request->hasFile('thumbnail')) {
+//         $product->thumbnail = $request->file('thumbnail')->store('products/thumbnails', 'public');
+//     }
+
+//     if ($request->hasFile('background_image')) {
+//         $product->background_image = $request->file('background_image')->store('products/backgrounds', 'public');
+//     }
+
+//     $product->text_zones = $request->text_zones;
+//     $product->image_zones = $request->image_zones;
+
+//     $product->save();
+
+//     return redirect()->route('product.index')->with('success', 'Product updated successfully.');
+// }
+public function update(Request $request, $id)
+{
+    $product = Product::findOrFail($id);
+
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'category_id' => 'required|exists:categories,id',
+        'subcategory_id' => 'nullable|exists:categories,id',
+        'type' => 'required|in:text_only,image_only,text_image,fixed',
+        'price' => 'required|numeric|min:0',
+        'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        'background_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+        'text_zones' => 'nullable|string',
+        'image_zones' => 'nullable|string',
+    ]);
+
+    $product->name = $request->name;
+    $product->category_id = $request->category_id;
+    $product->subcategory_id = $request->subcategory_id;
+    $product->type = $request->type;
+    $product->price = $request->price;
+    $product->status = $request->status ?? 1;
+
+    if ($request->hasFile('thumbnail')) {
+        $product->thumbnail = $request->file('thumbnail')->store('products/thumbnails', 'public');
+    }
+
+    if ($request->hasFile('background_image')) {
+        $product->background_image = $request->file('background_image')->store('products/backgrounds', 'public');
+    }
+
+    // Save zones as JSON
+    $product->text_zones = $request->text_zones ?: '[]';
+    $product->image_zones = $request->image_zones ?: '[]';
+
+    $product->save();
+
+    return redirect()->route('product.index')->with('success', 'Product updated successfully.');
+}
+
+
+
    public function destroy()
    {
     
+   }
+
+
+
+
+   public function edit_user($id)
+   {
+$product = Product::findOrFail($id);
+
+    // Fetch all categories (both parent and child)
+    $categories = Categorie::all();
+
+    return view('admin.product.edituser', compact('product', 'categories'));
    }
 }

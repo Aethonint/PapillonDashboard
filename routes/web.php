@@ -88,7 +88,10 @@ Route::middleware(['auth', 'checkRole:admin'])->group(function () {
      Route::get('/product/{category}/edit', [ProductController::class, 'edit'])->name('product.edit');
      Route::put('/product/{category}', [ProductController::class, 'update'])->name('product.update');
      Route::delete('/product/{category}', [ProductController::class, 'destroy'])->name('product.destroy');
+       Route::get('/product/{id}', [ProductController::class, 'show'])->name('product.show');
      Route::get('/categories/{parentId}/subcategories', [CategoryController::class, 'getSubcategories']);
+     //for users edit
+      Route::get('/product/{category}/edit/user', [ProductController::class, 'edit_user'])->name('product.edituser');
 
 
    
