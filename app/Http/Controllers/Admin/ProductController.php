@@ -25,15 +25,17 @@ class ProductController extends Controller
 public function store(Request $request)
 {
     // Validate
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'category_id' => 'required|exists:categories,id',
-        'type' => 'required|in:text_only,image_only,text_image,fixed',
-        'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        'background_image' => 'required|image|mimes:jpg,jpeg,png|max:4096',
-        'text_zones' => 'nullable|json',
-        'image_zones' => 'nullable|json',
-    ]);
+   $validated = $request->validate([
+    'name' => 'required|string|max:255',
+    'price' => 'required|numeric|min:0',
+      'subcategory_id' => 'nullable|exists:categories,id',
+    'category_id' => 'required|exists:categories,id',
+    'type' => 'required|in:text_only,image_only,text_image,fixed',
+    'thumbnail' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    'background_image' => 'required|image|mimes:jpg,jpeg,png|max:4096',
+    'text_zones' => 'nullable|json',
+    'image_zones' => 'nullable|json',
+]);
 
     try {
         // debug: quickly check if file is present (uncomment while debugging)
@@ -56,6 +58,8 @@ public function store(Request $request)
 
         $product = new \App\Models\Product();
         $product->name = $validated['name'];
+          $product->price = $validated['price'];
+          $product->subcategory_id = $validated['subcategory_id'] ?? null;
         $product->category_id = $validated['category_id'];
         $product->type = $validated['type'];
         $product->thumbnail = $thumbnailPath;

@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
                $table->string('name'); // Product name (Card name)
+                  $table->string('price'); // Product name (Card name)
+                  $table->unsignedBigInteger('subcategory_id')->nullable(); // Product name (Card name)
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade'); // Category relation
             $table->enum('type', ['text_only', 'image_only', 'text_image', 'fixed']); // Type of product
             $table->string('thumbnail')->nullable(); // Preview image

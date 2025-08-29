@@ -37,21 +37,50 @@
                 @enderror
             </div>
 
-            {{-- Category --}}
+            {{-- Price --}}
             <div class="mb-3">
-                <label>Category</label>
-                <select name="category_id" class="form-control" required>
-                    <option value="">-- Select Category --</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('category_id')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
+                <label>Price</label>
+                <input type="number" name="price" class="form-control" 
+                       placeholder="Enter price" value="{{ old('price') }}" min="0" step="0.01" required>
+                @error('price') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
+
+  {{-- Main Category --}}
+<div class="mb-3">
+    <label>Main Category</label>
+    <select name="category_id" id="parentCategory" class="form-control" required>
+        <option value="">-- Select Main Category --</option>
+        @foreach($categories->where('parent_id', null) as $parent)
+            <option value="{{ $parent->id }}" {{ old('category_id') == $parent->id ? 'selected' : '' }}>
+                {{ $parent->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('category_id') 
+        <small class="text-danger">{{ $message }}</small> 
+    @enderror
+</div>
+
+{{-- Sub Category --}}
+<div class="mb-3">
+    <label>Sub Category</label>
+    <select name="subcategory_id" id="subCategory" class="form-control" >
+        <option value="">-- Select Sub Category --</option>
+        @if(old('category_id'))
+            @foreach($categories->where('parent_id', old('category_id')) as $child)
+                <option value="{{ $child->id }}" {{ old('subcategory_id') == $child->id ? 'selected' : '' }}>
+                    {{ $child->name }}
+                </option>
+            @endforeach
+        @endif
+    </select>
+    @error('subcategory_id') 
+        <small class="text-danger">{{ $message }}</small> 
+    @enderror
+</div>
+
+
+
 
            <!-- Template Type (make sure values match validation) -->
 <div class="mb-3">
@@ -488,4 +517,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
+
+<script>
+document.getElementById('parentCategory').addEventListener('change', function () {
+    let parentId = this.value;
+    let subCategorySelect = document.getElementById('subCategory');
+
+    subCategorySelect.innerHTML = '<option value="">Loading...</option>';
+
+    if (parentId) {
+        fetch(`/categories/${parentId}/subcategories`) // Laravel route you’ll create
+            .then(response => response.json())
+            .then(data => {
+                subCategorySelect.innerHTML = '<option value="">-- Select Sub Category --</option>';
+                data.forEach(sub => {
+                    subCategorySelect.innerHTML += `<option value="${sub.id}">${sub.name}</option>`;
+                });
+            })
+            .catch(err => {
+                console.error('Error loading subcategories:', err);
+                subCategorySelect.innerHTML = '<option value="">Error loading data</option>';
+            });
+    } else {
+        subCategorySelect.innerHTML = '<option value="">-- Select Sub Category --</option>';
+    }
+});
+</script>
+
 @endsection

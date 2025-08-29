@@ -14,7 +14,9 @@ class Product extends Model
         'background_image',
         'text_zones',
         'image_zones',
-        'status'
+        'status',
+         'price',
+          'subcategory_id'
     ];
 
     protected $casts = [

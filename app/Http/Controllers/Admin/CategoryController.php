@@ -87,5 +87,12 @@ public function update(Request $request, Categorie $category)
         $category->delete();
         return redirect()->route('category.index')->with('success', 'Categorie deleted successfully!');
     }
+
+    public function getSubcategories($parentId)
+{
+    $subcategories = \App\Models\Categorie::where('parent_id', $parentId)->get(['id', 'name']);
+    return response()->json($subcategories);
+}
+
    
 }
